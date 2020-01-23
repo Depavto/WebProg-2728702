@@ -1,5 +1,11 @@
 <html>
   <head>
+    <style>
+    }
+    h1 {
+       text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    }
+    </style>
       <title>
           Best game 2019
       </title>
@@ -7,9 +13,13 @@
   </head>
 
   <body>
-      <h1>Greetings, sir Knight</h1>
-      <h3>It's raining gold!  </h3>
-      <h5>Collect as many coins as you and become the knight in the shiniest armor</h5>
+
+    <h1 style="color:FireBrick;">Greetings, Sir Knight</h1>
+    <h1 style="color:Silver;">Behold, it's raining <span style="color:Gold;">Gold!</span</h1></h1>
+    <h2 style="color:Peru;">Collect as many coins as you can and become
+       the knight in the shiniest armor</h2>
+
+
 
     <script>
 
@@ -18,15 +28,15 @@
       var crates;
       var coinTimer;
       var coins;
-
       var score = 0;
       var scoreText;
-
-      var secondsLeft = 30;
+      var secondsLeft = 15;
       var timeLeftText;
       var timeLeftTimer;
-
+      var gameOverText;
       var gameOver = false;
+      var wellDoneText;
+
 
       // configure the game (height, width, render-type, game loop functions)
       var config = {
@@ -36,7 +46,7 @@
         scene: {
           preload: gamePreload,
           create: gameCreate,
-          update: gameUpdate
+          update: gameUpdate,
         },
 
       physics: {
@@ -51,11 +61,10 @@
       function gamePreload(){
         // Loading assets
       console.log("Loading assets");
-      this.load.image("knight","assets/knight.png")
-      this.load.image("crate","assets/crate.png")
-      this.load.image("background", "assets/background.png")
-      this.load.image("bitcoin", "assets/bitcoin.png")
-
+      this.load.image("knight","assets/knight.png");
+      this.load.image("crate","assets/crate.png");
+      this.load.image("background", "assets/background.png");
+      this.load.image("bitcoin", "assets/bitcoin.png");
 
       // run animations for Knight
       this.load.image("run_frame_1","assets/knight/run/Run (1).png");
@@ -80,7 +89,7 @@
       this.load.image("idle_frame_9","assets/knight/idle/Idle (9).png");
       this.load.image("idle_frame_10","assets/knight/idle/Idle (10).png");
 
-    }
+      }
 
       function gameCreate(){
         // initial setup logic on the the asset and other setup
@@ -93,7 +102,7 @@
       knight = this.physics.add.sprite(200,100,"knight");
       // setSize to change the hitbox
       knight.body.setSize(220,600,11,0)
-      // scale to make the character a suitable size for the map
+      // scaling to make the character a suitable size for the map
       knight.scaleX = 0.15
       knight.scaleY = 0.15
 
@@ -106,15 +115,14 @@
       crates.create(280,450,"crate");
 
       // airborn crates
-      crates.create(380,345,"crate");
+      crates.create(380,350,"crate");
       crates.create(500,460,"crate");
       crates.create(580,460,"crate");
       crates.create(660,460,"crate");
       crates.create(520,220,"crate");
-      crates.create(600,220,"crate");
       crates.create(680,220,"crate");
-      crates.create(300,200,"crate");
-      crates.create(80,150,"crate");
+      crates.create(250,200,"crate");
+      crates.create(80,310,"crate");
 
       // create animations
       this.anims.create({
@@ -150,25 +158,27 @@
         ],
         frameRate: 9,
         repeat: 1
-
       })
+
       // now I want the knight and the crates to collide
       this.physics.add.collider(crates, knight);
 
-      scoreText = this.add.text(16, 16, "Bitcoin Bag: 0",
-                                {fontSize:"32px",
-                                 fill: "#000"});
+      scoreText = this.add.text(16, 16, "Bitcoin Bag: 0",{fontSize:"32px",fill: "#000"});
+      gameOverText = this.add.text(200, 250, "GAME OVER",{fontSize:"64px",fill: "Red"});
+      gameOverText.visible = false;
+      wellDoneText = this.add.text(375, 50, "Well done!",{fontSize:"48px",fill: "Blue"});
+      wellDoneText.visible = false;
 
 
-      // for some reason I can't explain this text does not appear in the game
-      timeLeftText = this.add.text(16, 70, secondsLeft + "Time left",
+
+      timeLeftText = this.add.text(16, 70, secondsLeft + "Seconds left",
                                                            {fontSize:"32px",
                                                             fill: "#f00"})
 
       cursors = this.input.keyboard.createCursorKeys();
 
       coinTimer = this.time.addEvent({
-          delay: Phaser.Math.Between(1000,4500),
+          delay: Phaser.Math.Between(250,1850),
           callback: generateCoins,
           callbackScope: this,
           repeat: -1
@@ -192,62 +202,64 @@
     if(secondsLeft<=0){
       this.physics.pause();
       gameOver = true;
+      gameOverText.visible = true;
+
     }
   }
 
       function generateCoins(){
+        console.log ("Generating Coins!")
+            var coins = this.physics.add.group({
+              key: "bitcoin",
+              repeat:1,
+              setXY:{
+                x: Phaser.Math.Between(0,800),
+                y: -50,
+                stepX: Phaser.Math.Between(30,100)
+              }
+            });
+
+            // code to execute on each spwaning coin
+            coins.children.iterate(function(child){
+              child.setBounceY(Phaser.Math.FloatBetween(0.4,1))
+            });
+
+            this.physics.add.collider(coins,crates);
+            this.physics.add.overlap(knight, coins, collectCoin, null, this)
+            }
+
+            function collectCoin(knight,coin){
+            coin.disableBody(true, true);
+            score+=1;
+            scoreText.setText("Bitcoin Bag: " + score);
+            }
 
 
-      var coins = this.physics.add.group({
-        key: "bitcoin",
-        repeat:1,
-        setXY:{
-          x: Phaser.Math.Between(5,795),
-          y: -100,
-          stepX: Phaser.Math.Between(25,120)
-        }
-      });
+            function gameUpdate(){
+              // monitoring inputs and telling the game how to update
 
-      // code to execute on each spwaning coin
-      coins.children.iterate(function(child){
-        child.setBounceY(Phaser.Math.Between(0.4,1.5))
-      });
+            if(cursors.left.isDown){
+              knight.setVelocityX(-300)
+              knight.play("knight_run", true)
+              knight.flipX = true
+            }
+            else if (cursors.right.isDown){
+              knight.setVelocityX(300)
+              knight.play("knight_run", true)
+              knight.flipX = false
+            }
+            else{
+              knight.setVelocityX(0)
+              knight.play("knight_idle", true)
+            }
 
-      this.physics.add.collider(coins,crates);
-      this.physics.add.overlap(knight, coins, collectCoin, null, this)
-      }
+            if (cursors.up.isDown && knight.body.touching.down) {
+              knight.setVelocityY(-550)
+            }
+          }
 
-      function collectCoin(knight,coin){
-      coin.disableBody(true, true);
-      score+=1;
-      scoreText.setText("Bitcoin Bag: " + score);
-      }
+            var game = new Phaser.Game(config);
 
-      function gameUpdate(){
-        // monitoring inputs and telling the game how to update
+  </script>
 
-      if(cursors.left.isDown){
-        knight.setVelocityX(-250)
-        knight.play("knight_run", true)
-        knight.flipX = true
-      }
-      else if (cursors.right.isDown){
-        knight.setVelocityX(250)
-        knight.play("knight_run", true)
-        knight.flipX = false
-      }
-      else{
-        knight.setVelocityX(0)
-        knight.play("knight_idle", true)
-      }
-
-      if (cursors.up.isDown && knight.body.touching.down) {
-        knight.setVelocityY(-550)
-      }
-    }
-
-      var game = new Phaser.Game(config);
-    </script>
-
-  </body>
 </html>
